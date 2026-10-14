@@ -15,8 +15,8 @@ A Python Telegram bot that lets each user switch between a local Ollama model an
 3. Install Python 3.10 or newer, clone the repository, and install Python dependencies:
 
    ```powershell
-   git clone https://github.com/attomaton/olama.git
-   cd olama
+   git clone https://github.com/attomaton/ollama-telegram-bot.git
+   cd ollama-telegram-bot
    python -m venv .venv
    .\.venv\Scripts\python.exe -m pip install -r requirements.txt
    ```
