@@ -4,17 +4,31 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$exe = Join-Path $PSScriptRoot '.runtime\ollama\ollama.exe'
-if (-not (Test-Path -LiteralPath $exe)) {
-    throw "Ollama executable missing: $exe"
+$portableExe = Join-Path $PSScriptRoot '.runtime\ollama\ollama.exe'
+if (Test-Path -LiteralPath $portableExe) {
+    $exe = $portableExe
+    $env:OLLAMA_MODELS = Join-Path $PSScriptRoot 'models'
+} else {
+    $installed = Get-Command ollama.exe -CommandType Application -ErrorAction SilentlyContinue
+    if (-not $installed) {
+        $standardExe = Join-Path $env:LOCALAPPDATA 'Programs\Ollama\ollama.exe'
+        if (Test-Path -LiteralPath $standardExe) { $installed = Get-Item -LiteralPath $standardExe }
+    }
+    if (-not $installed) {
+        throw 'Ollama is not installed. Install it from https://ollama.com/download/windows and run: ollama pull qwen3:4b-instruct'
+    }
+    $exe = $installed.Source
+    if (-not $exe) { $exe = $installed.FullName }
 }
 
 $env:OLLAMA_HOST = '127.0.0.1:11434'
-$env:OLLAMA_MODELS = Join-Path $PSScriptRoot 'models'
 $env:OLLAMA_NO_CLOUD = '1'
 $env:OLLAMA_CONTEXT_LENGTH = '4096'
 $env:OLLAMA_MAX_LOADED_MODELS = '1'
-New-Item -ItemType Directory -Force -Path (Join-Path $PSScriptRoot 'logs'), $env:OLLAMA_MODELS | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $PSScriptRoot 'logs') | Out-Null
+if (Test-Path -LiteralPath $portableExe) {
+    New-Item -ItemType Directory -Force -Path $env:OLLAMA_MODELS | Out-Null
+}
 
 function Test-Ollama {
     try {
